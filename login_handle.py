@@ -5,11 +5,29 @@
 # ======================
 import ConnectionObj
 import json
+import db
 
 
-def AgentUserLogin(jsonObj : json):
-    # 管理用户登陆
-    '''
+errorCode = {
+    "status": False,
+    "msg": "body to json failed"
+}
+
+successCode = {
+    "status": True,
+    "msg": "body to json success",
+}
+
+class LoginHandler:
+
+    def __init__(self):
+        self.sqlManagerObj = db.CSqlManager()
+        self.sqlManagerObj.intiDataBase()
+        self.connectionObj = ConnectionObj.CConnector()
+
+    def AgentUserLogin(self, jsonObj: json):
+        # 管理用户登陆
+        '''
         {
             "userName":"123",
             "password":"123"
@@ -20,14 +38,25 @@ def AgentUserLogin(jsonObj : json):
             "status":True / False,
             "msg":"body to json failed / success"
         }
-    '''
+        '''
+        userName = jsonObj["userName"]
+        password = jsonObj["password"]
+        # 1. 登陆校验
+        if self.sqlManagerObj.QueryUser(userName, password):
+            ## 2. 用户管理中增加用户
+            self.ConnectionObj.AddAgentUser(userName, password)
+            # 3. 返回结果
+            return successCode
+        else:
+            return errorCode
+        
 
-    pass
+        pass
 
+    def NormalUserLogin(self, jsonObj: json):
+        # 普通用户登陆
 
-def NormalUserLogin(jsonObj : json):
-    # 普通用户登陆
-    '''
+        '''
         {
             "token":"token"
         }
@@ -37,6 +66,14 @@ def NormalUserLogin(jsonObj : json):
             "status":True / False,
             "msg":"body to json failed / success"
         }
-    '''
-
-    pass
+        '''
+        token = jsonObj["token"]
+        ## 1. 登陆校验
+        if self.sqlManagerObj.QueryToken(token):
+            ## 2. 用户管理中增加用户
+            self.ConnectionObj.AddNormalUser(token)
+            # 3. 返回结果
+            return successCode
+        else:
+            return errorCode
+        pass
