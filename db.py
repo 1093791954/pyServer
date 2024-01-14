@@ -1,3 +1,7 @@
+# ###############################
+# 数据库
+# 记录用户信息
+# ###############################
 import sqlite3
 import os
 from datetime import datetime
