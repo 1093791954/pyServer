@@ -1,19 +1,21 @@
-# ####################################
-# 服务器                             #
-# 简述：项目从该文件启动             #
-# 功能：1、zmq服务器的启动           #
-#       2、连接对象信息的分发        #
-#       3、采用被动管理的方式，      #
-#          管理用户设置需要请求，    #
+# ------------------------------------
+# 服务器
+# 简述：项目从该文件启动
+# 功能：1、zmq服务器的启动
+#       2、连接对象信息的分发
+#       3、采用被动管理的方式，
+#          管理用户设置需要请求，
 #          普通用户获取管理用户的请求进行处理，并将结果记录到服务器，供给管理用户获取。
-# ####################################
+# ------------------------------------
 import os
 import zmq
 import socket
 import db
 from threading import Thread
 import time
+import json
 
+import login_handle
 
 
 class CServer:
@@ -29,12 +31,35 @@ class CServer:
         # 第一个帧是发送消息的客户端的标识符
         # 第二个帧是消息内容
         message = self.zmqsocket.recv_string()
+        '''
+        {
+            "packageType":"AgentLogin"
+            "body" : {}
+        }
+        '''
 
-        #  Do some 'work'
-        time.sleep(1)
+        # 解析消息为JSON格式
+        try:
+            message_json = json.loads(message)
+            package_type = message_json["packageType"]
+            body = message_json["body"]
+            if package_type == "AgenLogin":
+                login_handle.AgentUserLogin(body)
+            if package_type == "NormalLogin":
+                login_handle.NormalUserLogin(body)
 
-        #  Send reply back to client
-        self.zmqsocket.send_string("OK")
+        except json.JSONDecodeError:
+            '''
+            {
+                "status":0,
+                "msg":"body to json failed"
+            }
+            '''
+            response = {
+                "status": 1,
+                "msg": "body to json failed"
+            }
+            self.zmqsocket.send_string(json.dumps(response))
         pass
 
     def start(self):

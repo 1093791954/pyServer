@@ -20,6 +20,14 @@ class CSqlManager:
             print('数据库不存在，开始创建数据库！')
             self.userDb = sqlite3.connect('user.db')
             c = self.userDb.cursor()
+            '''
+            建表 用户账号信息表
+            ID              ID
+            account         账号
+            password        密码
+            mac_address     MAC地址
+            created_at      创建时间
+            '''
             c.execute('CREATE TABLE AgentUser ('
                     'id INTEGER,'
                     'account TEXT PRIMARY KEY,'
@@ -27,6 +35,28 @@ class CSqlManager:
                     'mac_address TEXT,'
                     'created_at TEXT'
                     ');'
+            )
+            '''
+            建表 用户请求，比如管理端需要下面的用户报告状态，那么修改表中的某列，供给下级用户查看来执行
+            account         账号
+            agentStatus     管理者信号灯    整数类型
+            '''
+            c.execute('CREATE TABLE UserRequest ('
+                      'account TEXT PRIMARY KEY,'
+                      'agentStatus INTEGER,'
+                      'FOREIGN KEY (account) REFERENCES AgentUser(account)'
+                      ');'
+            )
+            '''
+            建表 用户请求表
+            account         账号
+            additionalCode  附加代码    字符串类型
+            '''
+            c.execute('CREATE TABLE UserRequest ('
+                      'account TEXT PRIMARY KEY,'
+                      'additionalCode TEXT,'
+                      'FOREIGN KEY (account) REFERENCES AgentUser(account)'
+                      ');'
             )
             c.close()
 
@@ -61,5 +91,19 @@ class CSqlManager:
             return False,e
 
     #查询用户是否存在
-    def QueryUser(self, userName : str) -> bool :
-        pass
+    def QueryUser(self, userName : str , password : str) -> bool :
+        try:
+            sql_statement = "SELECT * FROM AgentUser WHERE account = '{}' AND password = '{}';".format(userName , password)
+            c = self.userDb.cursor()
+            c.execute(sql_statement)
+            result = c.fetchone()
+            if result:
+                return True
+            else:
+                return False
+        except Exception as e:
+            return False
+        
+
+
+sqlite3_manager  = CSqlManager()
