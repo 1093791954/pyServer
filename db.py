@@ -48,7 +48,7 @@ class CSqlManager:
                       ');'
             )
             '''
-            建表 用户请求表
+            建表 用户附加码表
             account         账号
             additionalCode  附加代码    字符串类型
             '''
@@ -104,6 +104,5 @@ class CSqlManager:
         except Exception as e:
             return False
         
-
 
 sqlite3_manager  = CSqlManager()

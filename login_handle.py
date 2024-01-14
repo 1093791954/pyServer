@@ -14,7 +14,14 @@ def AgentUserLogin(jsonObj : json):
             "userName":"123",
             "password":"123"
         }
+        
+        返回json:
+        {
+            "status":True / False,
+            "msg":"body to json failed / success"
+        }
     '''
+
     pass
 
 
@@ -24,5 +31,12 @@ def NormalUserLogin(jsonObj : json):
         {
             "token":"token"
         }
+
+        返回json:
+        {
+            "status":True / False,
+            "msg":"body to json failed / success"
+        }
     '''
+
     pass
