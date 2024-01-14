@@ -5,6 +5,8 @@
 import sqlite3
 import os
 from datetime import datetime
+import random
+import string
 
 class CSqlManager:
     def __init__(self):
@@ -68,7 +70,7 @@ class CSqlManager:
         return result
 
     # 注册用户
-    def registerUser(self , userName : str , password : str) -> tuple[bool , str]:
+    def registerUser(self , userName : str , password : str) -> tuple[bool , str , str]:
         nowTime = datetime.now()
         formatted_time = nowTime.strftime("%Y-%m-%d")
         id = self.getAgentUserCount()
@@ -80,29 +82,50 @@ class CSqlManager:
             c = self.userDb.cursor()
             c.execute(sql_statement)
             self.userDb.commit()  # 如果执行成功则提交事务
+
+            # 生成随机的16字符的字符串
+            additionalCode = ''.join(random.choices(string.ascii_uppercase + string.ascii_lowercase + string.digits, k=16))
+
+            # 插入 UserRequest 表
+            userRequestSql = "INSERT INTO UserRequest (account, additionalCode) VALUES ('{}', '{}');".format(userName, additionalCode)
+            c.execute(userRequestSql)
+            self.userDb.commit()  # 如果执行成功则提交事务
+
             c.close()
-            #print("SQL语句执行成功！")
-            return True,'成功'
+            return True, '成功' , userRequestSql
         except Exception as e:
             self.userDb.rollback()  # 如果发生错误则回滚事务
-            #print("执行SQL语句时发生错误:", e)
-            # 如果希望将异常继续传播，可以重新引发异常
-            # raise e
-            return False,e
+            return False, e , ''
 
-    #查询用户是否存在
-    def QueryUser(self, userName : str , password : str) -> bool :
+    # 查询用户是否存在
+    def QueryUser(self, userName: str, password: str) -> tuple[bool, str]:
         try:
-            sql_statement = "SELECT * FROM AgentUser WHERE account = '{}' AND password = '{}';".format(userName , password)
+            sql_statement = "SELECT * FROM AgentUser WHERE account = '{}' AND password = '{}';".format(userName, password)
             c = self.userDb.cursor()
             c.execute(sql_statement)
             result = c.fetchone()
+            c.close()
             if result:
-                return True
+                return True, "查询成功"
             else:
-                return False
+                return False, "用户不存在"
         except Exception as e:
-            return False
+            return False, str(e)
+    
+    # 验证附加码
+    def verifyToken(self, token: str) -> tuple[bool, str]:
+        try:
+            sql_statement = "SELECT additionalCode FROM UserRequest WHERE additionalCode = '{}';".format(token)
+            c = self.userDb.cursor()
+            c.execute(sql_statement)
+            result = c.fetchone()
+            c.close()
+            if result:
+                return True, "验证成功"
+            else:
+                return False, "验证失败"
+        except Exception as e:
+            return False, str(e)
         
 
 sqlite3_manager  = CSqlManager()
