@@ -16,6 +16,7 @@ import time
 import json
 
 import login_handle
+import file_handle
 
 
 class CServer:
@@ -43,11 +44,19 @@ class CServer:
             message_json = json.loads(message)
             package_type = message_json["packageType"]
             body = message_json["body"]
+            retJson : json
             if package_type == "AgenLogin":
-                login_handle.AgentUserLogin(body)
+                retJson = login_handle.AgentUserLogin(body)
             if package_type == "NormalLogin":
-                login_handle.NormalUserLogin(body)
+                retJson = login_handle.NormalUserLogin(body)
+            if package_type == "AgentUpload":
+                retJson = file_handle.uploadScript(body)
+            if package_type == "AgentDownload":
+                retJson = file_handle.downloadScript(body)
+            if package_type == "AgentGetList":
+                retJson = file_handle.getScriptList(body)
 
+            self.zmqsocket.send_string(retJson.dumps(response))
         except json.JSONDecodeError:
             '''
             {

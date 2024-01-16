@@ -43,7 +43,7 @@ class CSqlManager:
             account         账号
             agentStatus     管理者信号灯    整数类型
             '''
-            c.execute('CREATE TABLE UserRequest ('
+            c.execute('CREATE TABLE UserSignal ('
                       'account TEXT PRIMARY KEY,'
                       'agentStatus INTEGER,'
                       'FOREIGN KEY (account) REFERENCES AgentUser(account)'
@@ -126,6 +126,58 @@ class CSqlManager:
                 return False, "验证失败"
         except Exception as e:
             return False, str(e)
+        
+    # 设置信号
+    def SetSignal(self, userName: str, signal: int) -> tuple[bool, str]:
+        try:
+            # 查询当前的agentStatus值
+            c = self.userDb.cursor()
+            c.execute("SELECT agentStatus FROM UserSignal WHERE userName = ?;", (userName,))
+            result = c.fetchone()
+            if result is None:
+                c.close()
+                return False, "无法获取当前的agentStatus值"
+
+            current_status = result[0]
+            new_status = current_status | signal
+
+            # 更新agentStatus值
+            c.execute("UPDATE UserSignal SET agentStatus = ? WHERE userName = ?;", (new_status, userName))
+            self.userDb.commit()
+            c.close()
+
+            return True, "设置信号成功"
+        except Exception as e:
+            return False, str(e)
+
+    # 获取信号
+    def GetSignal(self, token: str) -> tuple[bool, str, int]:
+        try:
+            # 查询additionalCode对应的account
+            sql_statement = "SELECT account FROM UserRequest WHERE additionalCode = '{}';".format(token)
+            c = self.userDb.cursor()
+            c.execute(sql_statement)
+            result = c.fetchone()
+            c.close()
+            if result is None:
+                return False, "无法找到对应的账户", 0
+
+            account = result[0]
+
+            # 查询对应的agentStatus
+            sql_statement = "SELECT agentStatus FROM UserSignal WHERE userName = '{}';".format(account)
+            c = self.userDb.cursor()
+            c.execute(sql_statement)
+            result = c.fetchone()
+            c.close()
+            if result is None:
+                return False, "无法找到对应的信号", 0
+
+            agentStatus = result[0]
+
+            return True, "获取信号成功", agentStatus
+        except Exception as e:
+            return False, str(e), 0
         
 
 sqlite3_manager  = CSqlManager()

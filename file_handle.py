@@ -9,116 +9,122 @@ import db
 import scriptFile
 import json
 
-errorCode = {
-    "status": False,
-    "msg": "body to json failed"
-}
 
-successCode = {
-    "status": True,
-    "msg": "body to json success",
-}
 
-class fileHandler:
-    def __init__(self):
-        self.sqlManagerObj = db.CSqlManager()
-        self.sqlManagerObj.intiDataBase()
-    def uploadScript(self, jsonObj: json):
-        '''
-            {
-                "userName":"123",
-                "password":"123",
-                "filename":"script1.lua",
-                "file":"file base64"
-            }
-            返回json:
-            {
-                "status":True / False,
-                "msg":"body to json failed / success"
-            }
-        '''
-        try:
-            userName =  jsonObj["userName"]
-            password = jsonObj["password"]
-            filename = jsonObj["filename"]
-            file = jsonObj["file"]
-            # 1. 登陆校验
-            if self.sqlManagerObj.QueryUser(userName, password):
-                # 2. 文件上传
-                scriptFileManagerObj = scriptFile.CFileManager('script')
-                scriptFileManagerObj.upLoadScriptFile_str(userName, filename, file)
-                
-                return successCode
-                # 3. 返回结果
+# 管理用户上传脚本
+def uploadScript( jsonObj: json):
+    '''
+        {
+            "userName":"123",
+            "password":"123",
+            "filename":"script1.lua",
+            "file":"file base64"
+        }
+        返回json:
+        {
+            "status":True / False,
+            "msg":"body to json failed / success"
+        }
+    '''
+    retJson : json
+    try:
+        userName =  jsonObj["userName"]
+        password = jsonObj["password"]
+        filename = jsonObj["filename"]
+        file = jsonObj["file"]
+        # 1. 登陆校验
+        isSuccess , errMsg = db.sqlite3_manager.QueryUser(userName, password)
+        if isSuccess:
+            # 2. 文件上传
+            scriptFileManagerObj = scriptFile.CFileManager('script')
+            scriptFileManagerObj.upLoadScriptFile_str(userName, filename, file)
+            
+            retJson['status'] = True
+            retJson['msg'] = 'Success'
+            return retJson
+        else:
+            retJson['status'] = False
+            retJson['msg'] = errMsg
+            return retJson
+           
+    except Exception as e:
+            retJson['status'] = False
+            retJson['msg'] = str(e)
+            return retJson
+    
+# 管理用户下载脚本
+def downloadScript( jsonObj: json):
+    '''
+        {
+            "userName":"123",
+            "password":"123",
+            "filename":"script1.lua"
+        }
+        返回json:
+        {
+            "status":True / False,
+            "msg":"body to json failed / success",
+            "file":""
+        }
+    '''
+    retJson : json
+    try:
+        userName =  jsonObj["userName"]
+        password = jsonObj["password"]
+        filename = jsonObj["filename"]
+        # 1. 登陆校验
+        isSuccess , errMsg = db.sqlite3_manager.QueryUser(userName, password)
+        if isSuccess:
+            # 2. 文件下载
+            scriptFileManagerObj = scriptFile.CFileManager('script')
+            file = scriptFileManagerObj.getUserScriptFile_str(userName, filename)
+            if file:
+                retJson['status'] = True
+                retJson['msg'] = file
             else:
-                return errorCode
-               
-        except Exception:
-            return errorCode
-
-    def downloadScript(self, jsonObj: json):
-        '''
-            {
-                "userName":"123",
-                "password":"123",
-                "filename":"script1.lua"
-            }
-            返回json:
-            {
-                "status":True / False,
-                "msg":"body to json failed / success",
-                "file":""
-            }
-        '''
-        try:
-            userName =  jsonObj["userName"]
-            password = jsonObj["password"]
-            filename = jsonObj["filename"]
-            # 1. 登陆校验
-            if self.sqlManagerObj.QueryUser(userName, password):
-                # 2. 文件下载
-                scriptFileManagerObj = scriptFile.CFileManager('script')
-                file = scriptFileManagerObj.getUserScriptFile_str(userName, filename)
-                successCode["file"] = file
-                # 3. 返回结果
-                return successCode
-            else:
-                return errorCode
-               
-        except Exception:
-            return errorCode
-
-    def getScriptList(self, jsonObj: json):
-        '''
-            {
-                "userName":"123",
-                "password":"123"
-            }
-            返回json:
-            {
-                "status":True / False,
-                "msg":"body to json failed / success",
-                "scropt_list": []
-            }
-        '''
-        try:
-            userName =  jsonObj["userName"]
-            password = jsonObj["password"]
-            # 1. 登陆校验
-            if self.sqlManagerObj.QueryUser(userName, password):
-                # 2. 获取文件列表
-                scriptFileManagerObj = scriptFile.CFileManager('script')
-                scropt_list = scriptFileManagerObj.getUserScriptFileList(userName)
-                # 3. 返回结果
-                successCode["scropt_list"] = scropt_list
-                return successCode
-            else:
-                return errorCode
-               
-        except Exception:
-            return errorCode
-
-
-
-
-
+                retJson['status'] = False
+                retJson['msg'] = 'File not found'
+            return retJson
+        else:
+            retJson['status'] = False
+            retJson['msg'] = errMsg
+            return retJson
+    except Exception as e:
+        retJson['status'] = False
+        retJson['msg'] = str(e)
+        return retJson
+    
+# 管理用户获取脚本列表
+def getScriptList( jsonObj: json):
+    '''
+        {
+            "userName":"123",
+            "password":"123"
+        }
+        返回json:
+        {
+            "status":True / False,
+            "msg":"body to json failed / success"
+        }
+    '''
+    retJson  : json
+    try:
+        userName =  jsonObj["userName"]
+        password = jsonObj["password"]
+        # 1. 登陆校验
+        isSuccess , errMsg = db.sqlite3_manager.QueryUser(userName, password)
+        if isSuccess:
+            # 2. 获取文件列表
+            scriptFileManagerObj = scriptFile.CFileManager('script')
+            scropt_list = scriptFileManagerObj.getUserScriptFileList(userName)
+            retJson['status'] = True
+            retJson['msg'] = json.dumps(scropt_list)
+            return retJson
+        else:
+            retJson['status'] = False
+            retJson['msg'] = errMsg
+            return retJson
+    except Exception as e:
+        retJson['status'] = False
+        retJson['msg'] = str(e)
+        return retJson
