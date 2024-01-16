@@ -17,7 +17,9 @@ import json
 
 import login_handle
 import file_handle
-
+import signal_handle
+import heartbeat_handle
+import userInfo_handle
 
 class CServer:
     connections = {}
@@ -59,6 +61,18 @@ class CServer:
                 retJson = file_handle.downloadScript_normalUser(body)
             if package_type == "normalGetList":
                 retJson = file_handle.getScriptList_normalUser(body)
+            if package_type == "AgentGetSignal":
+                retJson = signal_handle.agentGetSignal(body)
+            if package_type == "AgentSetSignal":
+                retJson = signal_handle.agentSetSignal(body)
+            if package_type == "normalGetSignal":
+                retJson = signal_handle.normalGetSignal(body)
+            if package_type == "AgentHeart":
+                retJson = heartbeat_handle.agentUserHeartbeat(body)
+            if package_type == "normalHeart":
+                retJson = heartbeat_handle.normalUserHeartbeat(body)
+            if package_type == "normalSetInfo":
+                retJson = userInfo_handle.normalSetInfo(body)
 
             self.zmqsocket.send_string(retJson.dumps(response))
         except json.JSONDecodeError:

@@ -22,7 +22,6 @@ def agentSetSignal(jsonObj : json)->json:
     '''
     pass
 
-
 # 代理用户获取信号
 def agentGetSignal(jsonObj : json)->json:
     '''
