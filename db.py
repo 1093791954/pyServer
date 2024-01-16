@@ -127,6 +127,33 @@ class CSqlManager:
         except Exception as e:
             return False, str(e)
         
+    # 通过附加码查找其管理者
+    def QueryTokenParent(self, token: str) -> tuple[bool, str, str]:
+        '''
+        查询令牌的父级账户。
+
+        参数:
+            token (str): 令牌字符串。
+
+        返回值:
+            tuple[bool, str, str]: 包含查询结果的元组，元组包含以下三个元素:
+                - bool: 查询是否成功的标志，True表示成功，False表示失败。
+                - str: 查询结果的描述信息，成功时为"查询成功"，失败时为具体的错误信息。
+                - str: 查询结果的父级账户，成功时为父级账户的名称，失败时为None。
+        '''
+        try:
+            sql_statement = "SELECT account FROM UserRequest WHERE additionalCode = '{}';".format(token)
+            c = self.userDb.cursor()
+            c.execute(sql_statement)
+            result = c.fetchone()
+            c.close()
+            if result:
+                return True, "查询成功", result[0]
+            else:
+                return False, "附加码不存在", None
+        except Exception as e:
+            return False, str(e), None
+
     # 设置信号
     def SetSignal(self, userName: str, signal: int) -> tuple[bool, str]:
         try:

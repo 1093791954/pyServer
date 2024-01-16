@@ -55,6 +55,10 @@ class CServer:
                 retJson = file_handle.downloadScript(body)
             if package_type == "AgentGetList":
                 retJson = file_handle.getScriptList(body)
+            if package_type == "normalDownload":
+                retJson = file_handle.downloadScript_normalUser(body)
+            if package_type == "normalGetList":
+                retJson = file_handle.getScriptList_normalUser(body)
 
             self.zmqsocket.send_string(retJson.dumps(response))
         except json.JSONDecodeError:

@@ -12,7 +12,7 @@ import json
 
 
 # 管理用户上传脚本
-def uploadScript( jsonObj: json):
+def uploadScript( jsonObj: json)->json:
     '''
         {
             "userName":"123",
@@ -53,7 +53,7 @@ def uploadScript( jsonObj: json):
             return retJson
     
 # 管理用户下载脚本
-def downloadScript( jsonObj: json):
+def downloadScript( jsonObj: json)->json:
     '''
         {
             "userName":"123",
@@ -95,7 +95,7 @@ def downloadScript( jsonObj: json):
         return retJson
     
 # 管理用户获取脚本列表
-def getScriptList( jsonObj: json):
+def getScriptList( jsonObj: json)->json:
     '''
         {
             "userName":"123",
@@ -128,3 +128,40 @@ def getScriptList( jsonObj: json):
         retJson['status'] = False
         retJson['msg'] = str(e)
         return retJson
+
+
+# 普通用户 下载脚本
+def downloadScript_normalUser(jsonObj : json)-> json:
+    '''
+        db.py 下的 QueryTokenParent 函数来获取token的管理者用户，顺便还能判断该token是否存在。
+        然后再像downloadScript一样，下载指定管理者的脚本文件
+    '''
+    '''
+        {
+            "token":"123",
+            "filename":"script1.lua"
+        }
+        返回json:
+        {
+            "status":True / False,
+            "msg":"body to json failed / success"
+        }
+    '''
+    pass
+
+# 普通用户 获取脚本列表
+def getScriptList_normalUser(jsonObj :json)->json:
+    '''
+        先通过token查询其父账号信息，然后像getscriptList 函数一样获取并返回。
+    '''
+    '''
+        {
+            "token":"123"
+        }
+        返回json:
+        {
+            "status":True / False,
+            "msg":"body to json failed / success"
+        }
+    '''
+    pass
