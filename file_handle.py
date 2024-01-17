@@ -64,7 +64,6 @@ def downloadScript( jsonObj: json)->json:
         {
             "status":True / False,
             "msg":"body to json failed / success",
-            "file":""
         }
     '''
     retJson : json
