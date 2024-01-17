@@ -2,7 +2,8 @@
 代理和普通用户对于信号的获取和设置
 '''
 import json
-
+import ConnectionObj
+import db
 # 代理用户设置信号
 def agentSetSignal(jsonObj : json)->json:
     '''
@@ -20,7 +21,22 @@ def agentSetSignal(jsonObj : json)->json:
             "msg":"body to json failed / success"
         }
     '''
-    pass
+    retJson : json
+    userName = jsonObj["userName"]
+    password = jsonObj["password"]
+    isSuccess, Msg =  db.CSqlManager.QueryUser(userName, password)
+    if isSuccess:
+        signal = jsonObj["signal"]
+        ConnectionObj.global_connectorManager.addAgentUser(userName)
+        db.CSqlManager.SetSignal(signal)
+        retJson['status'] = True
+        retJson['msg'] = Msg
+        return retJson
+    else:
+        retJson['status'] = True
+        retJson['msg'] = Msg
+        return retJson
+
 
 # 代理用户获取信号
 def agentGetSignal(jsonObj : json)->json:
@@ -38,7 +54,9 @@ def agentGetSignal(jsonObj : json)->json:
             "msg":"body to json failed / success"
         }
     '''
-    pass
+
+
+
 
 # 普通用户获取信号
 def normalGetSignal(jsonObj : json)->json:
