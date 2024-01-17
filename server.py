@@ -44,6 +44,7 @@ class CServer:
         # 解析消息为JSON格式
         try:
             message_json = json.loads(message)
+            package_id = message_json["packageId"]
             package_type = message_json["packageType"]
             body = message_json["body"]
             retJson : json
@@ -73,8 +74,8 @@ class CServer:
                 retJson = heartbeat_handle.normalUserHeartbeat(body)
             if package_type == "normalSetInfo":
                 retJson = userInfo_handle.normalSetInfo(body)
-
-            self.zmqsocket.send_string(retJson.dumps(response))
+            message_json["body"] = retJson
+            self.zmqsocket.send_string(message_json.dumps(response))
         except json.JSONDecodeError:
             '''
             {
