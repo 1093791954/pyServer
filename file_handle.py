@@ -146,7 +146,35 @@ def downloadScript_normalUser(jsonObj : json)-> json:
             "msg":"body to json failed / success"
         }
     '''
-    pass
+    retJson  : json
+    try:
+        token =  jsonObj["token"]
+        filename = jsonObj["filename"]
+        # 1. 登陆校验
+        isSuccess , errMsg = db.sqlite3_manager.verifyToken(token)
+        if isSuccess:
+            isSuccess , errMsg , userName = db.sqlite3_manager.QueryTokenParent(token)
+            if not isSuccess:
+                retJson['status'] = False
+                retJson['msg'] = errMsg
+                return retJson
+            file = scriptFile.scriptManager.getUserScriptFile_str(userName, filename)
+
+            if file:
+                retJson['status'] = True
+                retJson['msg'] = file
+            else:
+                retJson['status'] = False
+                retJson['msg'] = 'File not found'
+            return retJson
+        else:
+            retJson['status'] = False
+            retJson['msg'] = errMsg
+            return retJson
+    except Exception as e:
+        retJson['status'] = False
+        retJson['msg'] = str(e)
+        return retJson
 
 # 普通用户 获取脚本列表
 def getScriptList_normalUser(jsonObj :json)->json:
@@ -163,4 +191,28 @@ def getScriptList_normalUser(jsonObj :json)->json:
             "msg":"body to json failed / success"
         }
     '''
-    pass
+    retJson  : json
+    try:
+        token =  jsonObj["token"]
+        filename = jsonObj["filename"]
+        # 1. 登陆校验
+        isSuccess , errMsg = db.sqlite3_manager.verifyToken(token)
+        if isSuccess:
+            isSuccess , errMsg , userName = db.sqlite3_manager.QueryTokenParent(token)
+            if not isSuccess:
+                retJson['status'] = False
+                retJson['msg'] = errMsg
+                return retJson
+            script_list = scriptFile.scriptManager.getUserScriptFileList(userName)
+
+            retJson['status'] = True
+            retJson['msg'] = json.dumps(script_list)
+            return retJson
+        else:
+            retJson['status'] = False
+            retJson['msg'] = errMsg
+            return retJson
+    except Exception as e:
+        retJson['status'] = False
+        retJson['msg'] = str(e)
+        return retJson

@@ -22,20 +22,26 @@ def agentSetSignal(jsonObj : json)->json:
         }
     '''
     retJson : json
-    userName = jsonObj["userName"]
-    password = jsonObj["password"]
-    isSuccess, Msg =  db.CSqlManager.QueryUser(userName, password)
-    if isSuccess:
+    try:
+        userName = jsonObj["userName"]
+        password = jsonObj["password"]
         signal = jsonObj["signal"]
-        ConnectionObj.global_connectorManager.addAgentUser(userName)
-        db.CSqlManager.SetSignal(signal)
-        retJson['status'] = True
-        retJson['msg'] = Msg
-        return retJson
-    else:
-        retJson['status'] = True
-        retJson['msg'] = Msg
-        return retJson
+        # 1. 登陆校验
+        isSuccess , errMsg = db.sqlite3_manager.QueryUser(userName, password)
+        if isSuccess:
+            # 2. 设置信号
+            db.sqlite3_manager.SetSignal(userName, signal)
+            retJson['status'] = True
+            retJson['msg'] = 'Success'
+            return retJson
+        else:
+            retJson['status'] = False
+            retJson['msg'] = errMsg
+            return retJson
+    except Exception as e:
+            retJson['status'] = False
+            retJson['msg'] = str(e)
+            return retJson
 
 
 # 代理用户获取信号
@@ -54,6 +60,32 @@ def agentGetSignal(jsonObj : json)->json:
             "msg":"body to json failed / success"
         }
     '''
+    retJson : json
+    try:
+        userName = jsonObj["userName"]
+        password = jsonObj["password"]
+        # 1. 登陆校验
+        isSuccess , errMsg = db.sqlite3_manager.QueryUser(userName, password)
+        if isSuccess:
+            # 2. 获取信号
+            isSuccess , errMsg , signal = db.sqlite3_manager.GetSignalByUserName(userName)
+            if isSuccess:
+                retJson['status'] = True
+                retJson['msg'] = 'Success'
+                retJson['signal'] = signal
+                return retJson
+            else:
+                retJson['status'] = False
+                retJson['msg'] = errMsg
+                return retJson
+        else:
+            retJson['status'] = False
+            retJson['msg'] = errMsg
+            return retJson
+    except Exception as e:
+            retJson['status'] = False
+            retJson['msg'] = str(e)
+            return retJson
 
 
 
@@ -73,4 +105,28 @@ def normalGetSignal(jsonObj : json)->json:
             "msg":"body to json failed / success"
         }
     '''
-    pass
+    retJson : json
+    try:
+        token = jsonObj["token"]
+        # 1. 登陆校验
+        isSuccess , errMsg = db.sqlite3_manager.verifyToken(token)
+        if isSuccess:
+            # 2. 获取信号
+            isSuccess , errMsg , signal = db.sqlite3_manager.GetSignal(token)
+            if isSuccess:
+                retJson['status'] = True
+                retJson['msg'] = 'Success'
+                retJson['signal'] = signal
+                return retJson
+            else:
+                retJson['status'] = False
+                retJson['msg'] = errMsg
+                return retJson
+        else:
+            retJson['status'] = False
+            retJson['msg'] = errMsg
+            return retJson
+    except Exception as e:
+            retJson['status'] = False
+            retJson['msg'] = str(e)
+            return retJson

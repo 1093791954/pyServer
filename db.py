@@ -206,5 +206,22 @@ class CSqlManager:
         except Exception as e:
             return False, str(e), 0
         
+    # 获取信号 - 通过用户名
+    def GetSignalByUserName(self, userName: str) -> tuple[bool, str, int]:
+        try:
+            # 查询对应的agentStatus
+            sql_statement = "SELECT agentStatus FROM UserSignal WHERE userName = '{}';".format(userName)
+            c = self.userDb.cursor()
+            c.execute(sql_statement)
+            result = c.fetchone()
+            c.close()
+            if result is None:
+                return False, "无法找到对应的信号", 0
+
+            agentStatus = result[0]
+
+            return True, "获取信号成功", agentStatus
+        except Exception as e:
+            return False, str(e), 0
 
 sqlite3_manager  = CSqlManager()

@@ -122,5 +122,17 @@ class CConnector:
         finally:
             self.lock_normal.release()  # Release the lock
 
+    # 普通用户设置用户信息
+    def setNormalUserInfo(self, token: str, info: str) -> tuple[bool, str]:
+        self.lock_normal.acquire()  # Acquire the lock
+        try:
+            if token in self.normalUser:
+                self.normalUser[token]["info"] = info
+                return True, "设置成功"
+            else:
+                return False, "用户不存在"
+        finally:
+            self.lock_normal.release()  # Release the lock
+
 
 global_connectorManager = CConnector()

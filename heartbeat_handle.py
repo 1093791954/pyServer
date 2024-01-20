@@ -1,5 +1,6 @@
 import ConnectionObj
 import json
+import db
 
 # 代理用户心跳处理函数
 def agentUserHeartbeat(jsonObj : json)->json:
@@ -9,7 +10,15 @@ def agentUserHeartbeat(jsonObj : json)->json:
         "password":"123"
     }
     '''
-    pass
+    try:
+        userName = jsonObj["userName"]
+        password = jsonObj["password"]
+        # 1. 登陆校验
+        isSuccess , errMsg = db.sqlite3_manager.QueryUser(userName, password)
+        if isSuccess:
+            ConnectionObj.global_connectorManager.refreshAgentUser(userName)
+    except Exception as e:
+        pass
 
 # 普通用户心跳处理函数
 def normalUserHeartbeat(jsonObj:json)->json:
@@ -18,4 +27,11 @@ def normalUserHeartbeat(jsonObj:json)->json:
         "token":"token"
     }
     '''
-    pass
+    try:
+        token = jsonObj["token"]
+        # 1. 附加码校验
+        isSuccess , errMsg = db.sqlite3_manager.verifyToken(token)
+        if isSuccess:
+            ConnectionObj.global_connectorManager.refreshNormalUser(token)
+    except Exception as e:
+        pass
